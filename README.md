@@ -35,8 +35,7 @@
 
 ### Logo 示意
 
-![專案 Logo](logo.png)
-
+static/images/logo.png
 > 您可將 `logo.png` 替換為自己的品牌 Logo，讓系統更具個人化風格。
 
 ---
