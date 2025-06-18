@@ -1,6 +1,6 @@
 # AI Dataset Generator
 
-一個基於 Google AI 服務的多模態數據集生成工具，支援文字、圖片和影片的 AI 生成。
+一個可透過OpenAI與Google服務來生成影像與影片的生成工具。
 [![IMAGE ALT TEXT](https://github.com/ch-tseng/ai-media-generator/blob/3a4a6722d4926725420ce894fafe04e503ab5cf4/data/youtube-pic.png)](https://www.youtube.com/watch?v=76qn5nVtHhA "影片生成示範")
 
 ---
