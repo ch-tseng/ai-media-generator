@@ -72,10 +72,8 @@ class ImageGenerator {
                 countSelect.innerHTML = `
                     <option value="1">1 張</option>
                     <option value="2">2 張</option>
+                    <option value="3">3 張</option>
                     <option value="4" selected>4 張</option>
-                    <option value="6">6 張</option>
-                    <option value="8">8 張</option>
-                    <option value="10">10 張</option>
                 `;
                 countSelect.value = '4';
             }
