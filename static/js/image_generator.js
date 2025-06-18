@@ -47,6 +47,7 @@ class ImageGenerator {
         const styleGroup = document.getElementById('image-style-group');
         const sizeSelect = document.getElementById('image-size');
         const qualitySelect = document.getElementById('image-quality');
+        const countSelect = document.getElementById('image-count');
         
         if (!modelSelect) return;
         
@@ -62,27 +63,12 @@ class ImageGenerator {
         }
         
         // 更新生成數量選項
-        const countSelect = document.getElementById('image-count');
         if (countSelect) {
-            const currentCount = countSelect.value;
             countSelect.innerHTML = '';
-            
             if (selectedModel === 'dall-e-3' || selectedModel === 'openai') {
-                // DALL-E 3 最多支援 4 張
-                countSelect.innerHTML = `
-                    <option value="1">1 張</option>
-                    <option value="2">2 張</option>
-                    <option value="3">3 張</option>
-                    <option value="4" selected>4 張</option>
-                `;
-                // 如果原來的數量超過 4，則設為 4
-                if (parseInt(currentCount) <= 4) {
-                    countSelect.value = currentCount;
-                } else {
-                    countSelect.value = '4';
-                }
+                countSelect.innerHTML = `<option value="1" selected>1 張</option>`;
+                countSelect.value = '1';
             } else {
-                // Imagen 支援更多數量
                 countSelect.innerHTML = `
                     <option value="1">1 張</option>
                     <option value="2">2 張</option>
@@ -91,12 +77,7 @@ class ImageGenerator {
                     <option value="8">8 張</option>
                     <option value="10">10 張</option>
                 `;
-                // 嘗試保持原來的選擇
-                if ([...countSelect.options].some(opt => opt.value === currentCount)) {
-                    countSelect.value = currentCount;
-                } else {
-                    countSelect.value = '4';
-                }
+                countSelect.value = '4';
             }
         }
         
