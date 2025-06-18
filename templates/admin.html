@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理區 - AI Dataset Generator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .navbar-brand, .navbar-nav .nav-link {
+            color: white !important;
+        }
+        .admin-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+        }
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+            border: none;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .stat-card h3 {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        .btn-admin {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            padding: 0.5rem 1rem;
+        }
+        .btn-admin:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+            color: white;
+        }
+        .btn-danger-admin {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            padding: 0.5rem 1rem;
+        }
+        .btn-danger-admin:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- 導航欄 -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-shield-alt me-2"></i>管理區
+            </a>
+            <div class="navbar-nav ms-auto">
+                <span class="nav-link">歡迎，{{ admin_username }}</span>
+                <a class="nav-link" href="/api/admin/logout">
+                    <i class="fas fa-sign-out-alt me-1"></i>登出
+                </a>
+                <a class="nav-link" href="/">
+                    <i class="fas fa-home me-1"></i>回到主頁
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- 統計面板 -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h3 id="totalGenerations">0</h3>
+                            <p class="mb-0">總生成次數</p>
+                        </div>
+                        <i class="fas fa-chart-line fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h3 id="todayGenerations">0</h3>
+                            <p class="mb-0">今日生成</p>
+                        </div>
+                        <i class="fas fa-calendar-day fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h3 id="imageGenerations">0</h3>
+                            <p class="mb-0">圖像生成</p>
+                        </div>
+                        <i class="fas fa-image fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h3 id="videoGenerations">0</h3>
+                            <p class="mb-0">影片生成</p>
+                        </div>
+                        <i class="fas fa-video fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 管理功能 -->
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-history me-2"></i>最近生成記錄</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="recentGenerationsContainer">
+                            <div class="text-center p-4">
+                                <i class="fas fa-spinner fa-spin fa-2x"></i>
+                                <p class="mt-2">載入中...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-tools me-2"></i>管理工具</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-admin" onclick="refreshStats()">
+                                <i class="fas fa-sync-alt me-2"></i>重新載入統計
+                            </button>
+                            <button class="btn btn-admin" onclick="exportData()">
+                                <i class="fas fa-download me-2"></i>匯出數據
+                            </button>
+                            <button class="btn btn-danger-admin" onclick="clearOldFiles()">
+                                <i class="fas fa-trash me-2"></i>清理舊檔案
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>系統資訊</h5>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>系統狀態:</strong> <span class="badge bg-success">正常運行</span></p>
+                        <p><strong>當前版本:</strong> v1.0.0</p>
+                        <p><strong>最後更新:</strong> <span id="lastUpdate">{{ current_time }}</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 頁面載入時獲取統計數據
+        document.addEventListener('DOMContentLoaded', function() {
+            loadStatistics();
+            loadRecentGenerations();
+        });
+
+        async function loadStatistics() {
+            try {
+                const response = await fetch('/api/admin/statistics');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const stats = data.statistics;
+                    document.getElementById('totalGenerations').textContent = stats.total_generations || 0;
+                    document.getElementById('todayGenerations').textContent = stats.today_generations || 0;
+                    document.getElementById('imageGenerations').textContent = stats.image_generations || 0;
+                    document.getElementById('videoGenerations').textContent = stats.video_generations || 0;
+                }
+            } catch (error) {
+                console.error('載入統計失敗:', error);
+            }
+        }
+
+        async function loadRecentGenerations() {
+            try {
+                const response = await fetch('/api/admin/recent-generations');
+                const data = await response.json();
+                
+                const container = document.getElementById('recentGenerationsContainer');
+                
+                if (data.success && data.generations.length > 0) {
+                    let html = '<div class="table-responsive"><table class="table table-striped">';
+                    html += '<thead><tr><th>時間</th><th>類型</th><th>Prompt</th><th>狀態</th></tr></thead><tbody>';
+                    
+                    data.generations.forEach(gen => {
+                        html += `<tr>
+                            <td>${new Date(gen.created_at).toLocaleString('zh-TW')}</td>
+                            <td><span class="badge ${gen.generation_type === 'image' ? 'bg-primary' : 'bg-info'}">${gen.generation_type === 'image' ? '圖像' : '影片'}</span></td>
+                            <td title="${gen.prompt}">${gen.prompt.length > 50 ? gen.prompt.substring(0, 50) + '...' : gen.prompt}</td>
+                            <td><span class="badge ${gen.status === 'success' ? 'bg-success' : 'bg-danger'}">${gen.status === 'success' ? '成功' : '失敗'}</span></td>
+                        </tr>`;
+                    });
+                    
+                    html += '</tbody></table></div>';
+                    container.innerHTML = html;
+                } else {
+                    container.innerHTML = '<div class="text-center p-4"><i class="fas fa-inbox fa-2x text-muted"></i><p class="mt-2 text-muted">暫無生成記錄</p></div>';
+                }
+            } catch (error) {
+                console.error('載入生成記錄失敗:', error);
+                document.getElementById('recentGenerationsContainer').innerHTML = '<div class="text-center p-4 text-danger"><i class="fas fa-exclamation-triangle fa-2x"></i><p class="mt-2">載入失敗</p></div>';
+            }
+        }
+
+        function refreshStats() {
+            loadStatistics();
+            loadRecentGenerations();
+            showAlert('success', '統計數據已重新載入');
+        }
+
+        function exportData() {
+            showAlert('info', '數據匯出功能開發中...');
+        }
+
+        function clearOldFiles() {
+            if (confirm('確定要清理舊檔案嗎？這個操作不可復原。')) {
+                showAlert('warning', '清理功能開發中...');
+            }
+        }
+
+        function showAlert(type, message) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+            alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 3000);
+        }
+    </script>
+</body>
+</html> 

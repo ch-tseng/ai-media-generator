@@ -1,0 +1,36 @@
+# Web 框架
+Flask==2.3.3
+Flask-CORS==4.0.0
+gunicorn==21.2.0
+
+# AI 服務 - OpenAI
+openai>=1.0.0
+
+# AI 服務 - Google
+google-generativeai==0.8.3
+google-genai>=0.3.0
+google-cloud-aiplatform>=1.70.0
+google-auth>=2.0.0
+google-auth-oauthlib>=1.0.0
+google-auth-httplib2>=0.2.0
+
+# Google Cloud 相關服務
+google-cloud-storage==2.10.0
+google-cloud-monitoring>=2.21.0
+google-cloud-resource-manager>=1.12.0
+google-ai-generativelanguage==0.6.10
+
+# HTTP 請求與網路
+requests==2.31.0
+
+# 環境變數管理
+python-dotenv==1.0.1
+
+# 圖像處理
+Pillow==10.4.0
+
+# 日期時間處理
+python-dateutil==2.9.0
+
+# JSON 處理和驗證
+jsonschema==4.23.0 

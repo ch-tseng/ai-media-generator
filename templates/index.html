@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>[凌陽創新科技]AI影像生成平台</title>
+    
+    <!-- CSS 樣式 -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    
+    <!-- Meta 標籤 -->
+    <meta name="description" content="使用 AI 技術生成高品質圖像和影片，支援 prompt 優化和安全性檢查">
+    <meta name="keywords" content="AI生成,圖像生成,影片生成,Imagen,Veo,prompt優化">
+</head>
+<body>
+    <!-- Header Menu -->
+    <header class="header-menu">
+        <div class="header-container">
+            <div class="logo">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="凌陽創新" class="logo-image">
+                <h1>AI影像生成平台🎨</h1>
+            </div>
+            <nav class="main-nav">
+                <ul class="nav-list">
+                    <li><a href="#image-generator" class="nav-link active" onclick="showSection('image-generator')">📸<br>生成相片</a></li>
+                    <li><a href="#video-generator" class="nav-link" onclick="showSection('video-generator')">🎬<br>生成影片</a></li>
+                    <li><a href="#image-search" class="nav-link" onclick="showSection('image-search')">🔍<br>圖片搜尋</a></li>                    
+                    <li><a href="#admin" class="nav-link" onclick="goToAdmin()" id="admin-nav">⚙️<br>管理區</a></li>
+                </ul>
+            </nav>
+            <div class="user-info" id="user-info" style="display: none;">
+                <div class="user-display">
+                    <span class="user-icon">👤</span>
+                    <span class="user-name" id="user-name">用戶</span>
+                    <span class="user-role" id="user-role"></span>
+                </div>
+                <button class="logout-btn" onclick="logout()">登出</button>
+            </div>
+            <div class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- 圖像生成區域 -->
+        <section id="image-generator" class="content-section active">
+            <div class="section-header">
+                <h2>📸 AI 圖像生成</h2>
+                <p>本系統使用最先進的影像生成技術，將您的描述文字轉化為擬真比擬相片品質的影像。</p>
+            </div>
+
+            <!-- Prompt 輸入區域 -->
+            <div class="prompt-input-section">
+                <div class="input-group">
+                    <label for="image-prompt" class="input-label">
+                        圖像描述 Prompt <span class="required">*</span>
+                    </label>
+                    <textarea 
+                        id="image-prompt" 
+                        class="prompt-textarea" 
+                        placeholder="請描述您想要生成的圖像，例如：一隻可愛的小貓坐在窗台上，背景是夕陽西下的城市景色，溫暖的光線，專業攝影風格..."
+                        maxlength="2000"
+                        rows="4"
+                        oninput="updateCharCount('image-prompt', 'image-char-count')"
+                    ></textarea>
+                    <div class="textarea-footer">
+                        <div class="char-counter">
+                            <span id="image-char-count">0</span>/2000
+                        </div>
+                        <button type="button" class="btn-link" onclick="showPromptTips('image')">
+                            💡 撰寫建議
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="action-buttons">
+                    <button type="button" class="btn btn-secondary" onclick="optimizePrompt('image')" id="optimize-image-btn">
+                        🔧 優化 Prompt
+                    </button>
+                </div>
+            </div>
+
+            <!-- 優化 Prompt 顯示區域 -->
+            <div id="optimization-results" class="optimization-results" style="display: none;">
+                <div class="result-header">
+                    <h3>🔧 Prompt 風格化建議</h3>
+                    <p>請選擇一種風格優化版本，或繼續使用原始 Prompt</p>
+                </div>
+                
+                <div class="optimization-options">
+                    <div class="optimization-option" id="optimization-option-1">
+                        <div class="option-header">
+                            <h4>🌿 自然清新風</h4>
+                            <span class="option-badge style-1">Natural & Clean</span>
+                        </div>
+                        <div class="style-description">
+                            <small>提升亮度對比，強化自然色彩，適合風景照或日光人像</small>
+                        </div>
+                        <textarea class="optimization-textarea" readonly></textarea>
+                        <button class="btn btn-sm btn-primary" onclick="selectOptimization(1)">
+                            選擇此版本
+                        </button>
+                    </div>
+                    
+                    <div class="optimization-option" id="optimization-option-2">
+                        <div class="option-header">
+                            <h4>🎬 電影感風格</h4>
+                            <span class="option-badge style-2">Cinematic Look</span>
+                        </div>
+                        <div class="style-description">
+                            <small>戲劇性燈光，深度景深，電影級色彩分級，適合街景夜景</small>
+                        </div>
+                        <textarea class="optimization-textarea" readonly></textarea>
+                        <button class="btn btn-sm btn-secondary" onclick="selectOptimization(2)">
+                            選擇此版本
+                        </button>
+                    </div>
+                    
+                    <div class="optimization-option" id="optimization-option-3">
+                        <div class="option-header">
+                            <h4>📷 復古懷舊風</h4>
+                            <span class="option-badge style-3">Vintage/Retro</span>
+                        </div>
+                        <div class="style-description">
+                            <small>復古色調，底片顆粒感，舊照片褪色效果，適合文青風場景</small>
+                        </div>
+                        <textarea class="optimization-textarea" readonly></textarea>
+                        <button class="btn btn-sm btn-outline" onclick="selectOptimization(3)">
+                            選擇此版本
+                        </button>
+                    </div>
+                    
+                    <div class="optimization-option" id="optimization-option-4">
+                        <div class="option-header">
+                            <h4>✨ 高質感商業風</h4>
+                            <span class="option-badge style-4">High-End Editorial</span>
+                        </div>
+                        <div class="style-description">
+                            <small>精準校色，銳化細節，專業級品質，適合人像特寫或商品攝影</small>
+                        </div>
+                        <textarea class="optimization-textarea" readonly></textarea>
+                        <button class="btn btn-sm btn-primary" onclick="selectOptimization(4)">
+                            選擇此版本
+                        </button>
+                    </div>
+                    
+                    <div class="optimization-option" id="optimization-option-5">
+                        <div class="option-header">
+                            <h4>⚫ 黑白極簡風</h4>
+                            <span class="option-badge style-5">Monochrome Minimalism</span>
+                        </div>
+                        <div class="style-description">
+                            <small>黑白灰階，強化光影對比，極簡美學，適合情緒表達或幾何構圖</small>
+                        </div>
+                        <textarea class="optimization-textarea" readonly></textarea>
+                        <button class="btn btn-sm btn-secondary" onclick="selectOptimization(5)">
+                            選擇此版本
+                        </button>
+                    </div>
+                    
+                    <div class="optimization-option" id="optimization-option-6">
+                        <div class="option-header">
+                            <h4>🌸 夢幻光影風</h4>
+                            <span class="option-badge style-6">Soft Dreamy</span>
+                        </div>
+                        <div class="style-description">
+                            <small>柔焦光暈，夢幻色調，粉嫩配色，適合婚紗、日落或浪漫主題</small>
+                        </div>
+                        <textarea class="optimization-textarea" readonly></textarea>
+                        <button class="btn btn-sm btn-outline" onclick="selectOptimization(6)">
+                            選擇此版本
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="optimization-actions">
+                    <button class="btn btn-outline" onclick="toggleOptimization('optimization-results')">
+                        📁 摺疊優化建議
+                    </button>
+                    <button class="btn btn-secondary" onclick="resetToOriginalPrompt('image')">
+                        🔄 恢復原始 Prompt
+                    </button>
+                </div>
+            </div>
+
+            <!-- 最終 Prompt 顯示區域 -->
+            <div class="final-prompt-section">
+                <h3>📝 最終生成 Prompt</h3>
+                <div class="final-prompt-container">
+                    <div class="final-prompt-display">
+                        <textarea 
+                            id="final-prompt-display" 
+                            class="final-prompt-textarea" 
+                            readonly
+                            placeholder="這裡將顯示最終用於生成圖像的 Prompt..."
+                            rows="3"
+                        ></textarea>
+                    </div>
+                    <div class="final-prompt-info">
+                        <small class="prompt-info-text">
+                            💡 此區域顯示最終用於生成圖像的 Prompt。預設為您輸入的原始內容，如果您選擇了優化版本，則會顯示優化後的內容。點擊「生成影像」時，系統會自動將此內容翻譯為最適合 AI 圖像生成的英文。
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 參數設定區域 -->
+            <div class="parameters-section">
+                <h3>生成參數設定</h3>
+                <div class="parameters-grid">
+                    <div class="parameter-group">
+                        <label for="image-model">生成模型</label>
+                        <select id="image-model" class="parameter-select" onchange="updateImageModelOptions()">
+                            <option value="dall-e-3" selected>DALL-E 3 (OpenAI)</option>
+                            <option value="imagen">Imagen 4 (Google)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="parameter-group">
+                        <label for="image-count">生成數量</label>
+                        <select id="image-count" class="parameter-select">
+                            <option value="1">1 張</option>
+                            <option value="2">2 張</option>
+                            <option value="3">3 張</option>
+                            <option value="4" selected>4 張</option>
+                        </select>
+                    </div>
+                    
+                    <div class="parameter-group">
+                        <label for="image-quality">圖像品質</label>
+                        <select id="image-quality" class="parameter-select">
+                            <option value="standard" selected>標準品質 (Standard)</option>
+                            <option value="hd">高清品質 (HD)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="parameter-group">
+                        <label for="image-size">圖像尺寸</label>
+                        <select id="image-size" class="parameter-select">
+                            <option value="1024x1024" selected>1024×1024 (正方形)</option>
+                            <option value="1024x1792">1024×1792 (直向)</option>
+                            <option value="1792x1024">1792×1024 (橫向)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="parameter-group" id="image-style-group">
+                        <label for="image-style">圖像風格 (DALL-E)</label>
+                        <select id="image-style" class="parameter-select">
+                            <option value="vivid" selected>生動 (Vivid)</option>
+                            <option value="natural">自然 (Natural)</option>
+                        </select>
+                    </div>
+                </div>
+                
+
+                
+                <div class="generate-button-container">
+                    <button type="button" class="btn btn-primary btn-large" onclick="generateImages()" id="generate-image-btn">
+                        🎨 生成影像
+                    </button>
+                </div>
+            </div>
+
+            <!-- 結果顯示區域 -->
+            <div class="results-section" id="image-results" style="display: none;">
+                <div class="results-header">
+                    <h3>🎨 生成結果</h3>
+                    <div class="results-actions">
+                        <button class="btn btn-secondary" onclick="downloadAll('images')">
+                            📥 全部下載
+                        </button>
+                        <button class="btn btn-outline" onclick="clearResults('image')">
+                            🗑️ 清除結果
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="image-grid" id="image-grid">
+                    <!-- 動態生成的圖像項目 -->
+                </div>
+            </div>
+        </section>
+
+        <!-- 圖片搜尋區域 -->
+        <section id="image-search" class="content-section">
+            <div class="section-header">
+                <h2>🔍 圖片搜尋</h2>
+                <p>搜尋高品質的免費圖片，支援多種尺寸下載</p>
+            </div>
+
+            <!-- 搜尋輸入區域 -->
+            <div class="search-input-section">
+                <div class="input-group">
+                    <label for="image-search-query" class="input-label">
+                        搜尋關鍵字 <span class="required">*</span>
+                    </label>
+                    <div class="search-input-container">
+                        <input 
+                            type="text" 
+                            id="image-search-query" 
+                            class="search-input" 
+                            placeholder="輸入搜尋關鍵字，例如：風景、動物、建築、人物..."
+                            maxlength="100"
+                            onkeypress="if(event.key==='Enter') searchImages()"
+                        >
+                        <button type="button" class="btn btn-primary search-btn" onclick="searchImages()">
+                            🔍 搜尋
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- 搜尋參數設定 -->
+                <div class="search-parameters">
+                    <div class="parameter-row">
+                        <div class="parameter-group">
+                            <label for="search-platform">搜尋平台</label>
+                            <select id="search-platform" class="parameter-select">
+                                <option value="google" selected>Google 圖片</option>
+                            </select>
+                        </div>
+                        
+                        <div class="parameter-group">
+                            <label for="search-orientation">圖片方向</label>
+                            <select id="search-orientation" class="parameter-select">
+                                <option value="any" selected>任何方向</option>
+                                <option value="landscape">橫向</option>
+                                <option value="portrait">直向</option>
+                            </select>
+                        </div>
+                        
+                        <div class="parameter-group">
+                            <label for="search-size">圖片尺寸</label>
+                            <select id="search-size" class="parameter-select">
+                                <option value="medium" selected>中等尺寸</option>
+                                <option value="large">大尺寸</option>
+                                <option value="any">任何尺寸</option>
+                                <option value="icon">圖示</option>
+                            </select>
+                        </div>
+                        
+                        <div class="parameter-group">
+                            <label for="search-type">圖片類型</label>
+                            <select id="search-type" class="parameter-select">
+                                <option value="photo" selected>照片</option>
+                                <option value="clipart">美工圖案</option>
+                                <option value="lineart">線條圖</option>
+                                <option value="face">人臉</option>
+                            </select>
+                        </div>
+                        
+                        <div class="parameter-group">
+                            <label for="search-per-page">每頁數量</label>
+                            <select id="search-per-page" class="parameter-select">
+                                <option value="12" selected>12 張</option>
+                                <option value="20">20 張</option>
+                                <option value="30">30 張</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- 平台特定選項 -->
+                    <div class="parameter-row" id="platform-specific-options" style="display: none;">
+                        <div class="parameter-group">
+                            <label for="search-category">圖片分類</label>
+                            <select id="search-category" class="parameter-select">
+                                <option value="all">所有分類</option>
+                            </select>
+                        </div>
+                        
+                        <div class="parameter-group">
+                            <label for="search-mode">搜尋模式</label>
+                            <select id="search-mode" class="parameter-select">
+                                <option value="single" selected>單一平台</option>
+                                <option value="all">所有平台</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 搜尋結果顯示區域 -->
+            <div class="search-results-section" id="search-results" style="display: none;">
+                <div class="results-header">
+                    <h3 id="search-results-title">🔍 搜尋結果</h3>
+                    <div class="results-info">
+                        <span id="search-results-info">找到 0 張圖片</span>
+                        <div class="results-actions">
+                            <button class="btn btn-secondary" onclick="downloadSelectedImages()" id="download-selected-btn" disabled>
+                                📥 下載選中的圖片
+                            </button>
+                            <button class="btn btn-outline" onclick="clearSearchResults()">
+                                🗑️ 清除結果
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 分頁控制 -->
+                <div class="pagination-container" id="pagination-container" style="display: none;">
+                    <div class="pagination">
+                        <button class="btn btn-sm btn-outline" onclick="loadSearchPage(currentSearchPage - 1)" id="prev-page-btn" disabled>
+                            ← 上一頁
+                        </button>
+                        <span class="page-info" id="page-info">第 1 頁 / 共 1 頁</span>
+                        <button class="btn btn-sm btn-outline" onclick="loadSearchPage(currentSearchPage + 1)" id="next-page-btn" disabled>
+                            下一頁 →
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- 圖片網格 -->
+                <div class="search-image-grid" id="search-image-grid">
+                    <!-- 動態生成的圖片項目 -->
+                </div>
+                
+                <!-- 分頁控制（底部） -->
+                <div class="pagination-container" id="pagination-container-bottom" style="display: none;">
+                    <!-- 與頂部分頁相同的內容，通過 JavaScript 同步 -->
+                </div>
+            </div>
+
+            <!-- 空狀態提示 -->
+            <div class="empty-state" id="search-empty-state">
+                <div class="empty-state-content">
+                    <div class="empty-state-icon">🔍</div>
+                    <h3>開始搜尋圖片</h3>
+                    <p>在上方輸入關鍵字，搜尋高品質的免費圖片</p>
+                    <div class="popular-searches">
+                        <h4>熱門搜尋：</h4>
+                        <div class="search-tags">
+                            <span class="search-tag" onclick="quickSearch('風景')">風景</span>
+                            <span class="search-tag" onclick="quickSearch('動物')">動物</span>
+                            <span class="search-tag" onclick="quickSearch('建築')">建築</span>
+                            <span class="search-tag" onclick="quickSearch('人物')">人物</span>
+                            <span class="search-tag" onclick="quickSearch('商業')">商業</span>
+                            <span class="search-tag" onclick="quickSearch('科技')">科技</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 搜尋 Loading Overlay -->
+            <div class="search-loading-overlay" id="search-loading-overlay">
+                <div class="search-loading-content">
+                    <div class="search-loading-spinner"></div>
+                    <div class="search-loading-text" id="search-loading-text">🔍 正在搜尋圖片...</div>
+                    <div class="search-loading-description" id="search-loading-description">
+                        正在從Google搜尋高品質圖片，請稍候...
+                    </div>
+                    <div class="search-loading-progress">
+                        <div class="search-progress-bar">
+                            <div class="search-progress-fill" id="search-progress-fill"></div>
+                        </div>
+                        <div class="search-progress-text" id="search-progress-text">正在連接伺服器...</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 影片生成區域 -->
+        <section id="video-generator" class="content-section">
+            <div class="section-header">
+                <h2>🎬 AI 影片生成</h2>
+                <p>使用最先進的 Veo 2 技術，將您的創意轉化為高品質動態影片</p>
+            </div>
+
+            <!-- Prompt 輸入區域 -->
+            <div class="prompt-input-section">
+                <div class="input-group">
+                    <label for="video-prompt" class="input-label">
+                        影片描述 Prompt <span class="required">*</span>
+                    </label>
+                    <textarea 
+                        id="video-prompt" 
+                        class="prompt-textarea" 
+                        placeholder="請描述您想要生成的影片，例如：一隻可愛的小貓在陽光下睡覺的廣角鏡頭，溫暖的光線，電影風格的拍攝..."
+                        maxlength="2000"
+                        rows="4"
+                        oninput="updateCharCount('video-prompt', 'video-char-count')"
+                    ></textarea>
+                    <div class="textarea-footer">
+                        <div class="char-counter">
+                            <span id="video-char-count">0</span>/2000
+                        </div>
+                        <button type="button" class="btn-link" onclick="showPromptTips('video')">
+                            💡 撰寫建議
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="action-buttons">
+                    <button type="button" class="btn btn-secondary" onclick="optimizePrompt('video')" id="optimize-video-btn">
+                        🔧 優化 Prompt
+                    </button>
+                </div>
+            </div>
+
+            <!-- 優化 Prompt 顯示區域 -->
+            <div id="video-optimization-results" class="optimization-results" style="display: none;">
+                <div class="result-header">
+                    <h3>🔧 Prompt 風格化建議</h3>
+                    <p>請選擇一種風格優化版本，或繼續使用原始 Prompt</p>
+                </div>
+                
+                <div class="optimization-options">
+                    <div class="optimization-option" id="video-optimization-option-1">
+                        <div class="option-header">
+                            <h4>🌿 自然清新風</h4>
+                            <span class="option-badge style-1">Natural & Clean</span>
+                        </div>
+                        <div class="style-description">
+                            <small>清晰流暢動作，自然色彩，適合戶外場景或生活記錄</small>
+                        </div>
+                        <textarea class="optimization-textarea" readonly></textarea>
+                        <button class="btn btn-sm btn-primary" onclick="selectVideoOptimization(1)">
+                            選擇此版本
+                        </button>
+                    </div>
+                    
+                    <div class="optimization-option" id="video-optimization-option-2">
+                        <div class="option-header">
+                            <h4>🎬 電影感風格</h4>
+                            <span class="option-badge style-2">Cinematic Look</span>
+                        </div>
+                        <div class="style-description">
+                            <small>電影級攝影技巧，戲劇性燈光，慢動作特效，適合敘事性影片</small>
+                        </div>
+                        <textarea class="optimization-textarea" readonly></textarea>
+                        <button class="btn btn-sm btn-secondary" onclick="selectVideoOptimization(2)">
+                            選擇此版本
+                        </button>
+                    </div>
+                    
+                    <div class="optimization-option" id="video-optimization-option-3">
+                        <div class="option-header">
+                            <h4>📷 復古懷舊風</h4>
+                            <span class="option-badge style-3">Vintage/Retro</span>
+                        </div>
+                        <div class="style-description">
+                            <small>復古濾鏡，舊時代質感，顆粒感和色彩偏移，適合懷舊主題</small>
+                        </div>
+                        <textarea class="optimization-textarea" readonly></textarea>
+                        <button class="btn btn-sm btn-outline" onclick="selectVideoOptimization(3)">
+                            選擇此版本
+                        </button>
+                    </div>
+                    
+                    <div class="optimization-option" id="video-optimization-option-4">
+                        <div class="option-header">
+                            <h4>✨ 高質感商業風</h4>
+                            <span class="option-badge style-4">High-End Editorial</span>
+                        </div>
+                        <div class="style-description">
+                            <small>專業級色彩校正，商業廣告品質，適合產品展示或品牌影片</small>
+                        </div>
+                        <textarea class="optimization-textarea" readonly></textarea>
+                        <button class="btn btn-sm btn-primary" onclick="selectVideoOptimization(4)">
+                            選擇此版本
+                        </button>
+                    </div>
+                    
+                    <div class="optimization-option" id="video-optimization-option-5">
+                        <div class="option-header">
+                            <h4>⚫ 黑白極簡風</h4>
+                            <span class="option-badge style-5">Monochrome Minimalism</span>
+                        </div>
+                        <div class="style-description">
+                            <small>黑白灰階，強調光影對比，極簡主義美學，適合藝術表達</small>
+                        </div>
+                        <textarea class="optimization-textarea" readonly></textarea>
+                        <button class="btn btn-sm btn-secondary" onclick="selectVideoOptimization(5)">
+                            選擇此版本
+                        </button>
+                    </div>
+                    
+                    <div class="optimization-option" id="video-optimization-option-6">
+                        <div class="option-header">
+                            <h4>🌸 夢幻光影風</h4>
+                            <span class="option-badge style-6">Soft Dreamy</span>
+                        </div>
+                        <div class="style-description">
+                            <small>柔和光暈，夢幻色彩分級，輕柔動作過渡，適合浪漫或幻想主題</small>
+                        </div>
+                        <textarea class="optimization-textarea" readonly></textarea>
+                        <button class="btn btn-sm btn-outline" onclick="selectVideoOptimization(6)">
+                            選擇此版本
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="optimization-actions">
+                    <button class="btn btn-outline" onclick="toggleOptimization('video-optimization-results')">
+                        📁 摺疊優化建議
+                    </button>
+                    <button class="btn btn-secondary" onclick="resetToOriginalPrompt('video')">
+                        🔄 恢復原始 Prompt
+                    </button>
+                </div>
+            </div>
+
+            <!-- 最終 Prompt 顯示區域 -->
+            <div class="final-prompt-section">
+                <h3>📝 最終生成 Prompt</h3>
+                <div class="final-prompt-container">
+                    <div class="final-prompt-display">
+                        <textarea 
+                            id="final-video-prompt-display" 
+                            class="final-prompt-textarea" 
+                            readonly
+                            placeholder="這裡將顯示最終用於生成影片的 Prompt..."
+                            rows="3"
+                        ></textarea>
+                    </div>
+                    <div class="final-prompt-info">
+                        <small class="prompt-info-text">
+                            💡 此區域顯示最終用於生成影片的 Prompt。預設為您輸入的原始內容，如果您選擇了優化版本，則會顯示優化後的內容。點擊「生成影片」時，系統會自動將此內容翻譯為最適合 AI 影片生成的英文。
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 參數設定區域 -->
+            <div class="parameters-section">
+                <h3>生成參數設定</h3>
+                <div class="parameters-grid">
+                    <div class="parameter-group">
+                        <label for="video-model">生成模型</label>
+                        <select id="video-model" class="parameter-select" onchange="updateVideoModelOptions()">
+                            <option value="veo" selected>Veo 2.0 (Google) - 推薦</option>
+                            <option value="openai">OpenAI Video (實驗性)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="parameter-group">
+                        <label for="video-aspect-ratio">影片比例</label>
+                        <select id="video-aspect-ratio" class="parameter-select">
+                            <option value="16:9" selected>16:9 (橫向)</option>
+                            <option value="9:16">9:16 (直向)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="parameter-group">
+                        <label for="video-duration">影片長度</label>
+                        <select id="video-duration" class="parameter-select">
+                            <option value="5" selected>5 秒</option>
+                            <option value="6">6 秒</option>
+                            <option value="7">7 秒</option>
+                            <option value="8">8 秒</option>
+                        </select>
+                    </div>
+                    
+                    <!-- 人物生成參數已隱藏，固定為允許成人 -->
+                    <select id="video-person-generation" class="parameter-select" style="display: none;">
+                        <option value="allow_adult" selected>允許成人</option>
+                    </select>
+                </div>
+                
+
+                
+                <!-- 生成按鈕 -->
+                <div class="parameter-actions">
+                    <button type="button" class="btn btn-primary" onclick="generateVideos()" id="generate-video-btn">
+                        🎬 生成影片
+                    </button>
+                </div>
+            </div>
+
+            <!-- 結果顯示區域 -->
+            <div class="results-section" id="video-results" style="display: none;">
+                <div class="results-header">
+                    <h3>🎬 生成結果</h3>
+                    <div class="results-actions">
+                        <button class="btn btn-secondary" onclick="downloadAll('videos')">
+                            📥 下載影片
+                        </button>
+                        <button class="btn btn-outline" onclick="clearResults('video')">
+                            🗑️ 清除結果
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="video-grid" id="video-grid">
+                    <!-- 動態生成的影片項目 -->
+                </div>
+            </div>
+        </section>
+
+        <!-- 管理區域 -->
+        <section id="admin" class="content-section">
+            <div class="section-header">
+                <h2>⚙️ 管理區</h2>
+                <p>系統管理功能，包括用戶管理和生成記錄查看。</p>
+            </div>
+            
+            <!-- 管理功能選項卡 -->
+            <div class="admin-tabs">
+                <button class="admin-tab-btn" onclick="showAdminTab('records')">📊 生成記錄</button>
+                <button class="admin-tab-btn active" onclick="showAdminTab('statistics')">📈 統計信息</button>
+            </div>
+            
+
+            
+            <!-- 生成記錄 -->
+            <div id="admin-records" class="admin-tab-content">
+                <div class="admin-section-header">
+                    <h3>📊 生成記錄</h3>
+                    <div class="admin-actions">
+                        <select id="records-filter" onchange="filterRecords()">
+                            <option value="all">所有記錄</option>
+                            <option value="image">圖像生成</option>
+                            <option value="video">影片生成</option>
+                        </select>
+                        <button class="btn btn-primary" onclick="refreshRecords()">🔄 刷新</button>
+                    </div>
+                </div>
+                
+                <div class="records-table-container">
+                    <table class="admin-table" id="records-table">
+                        <thead>
+                            <tr>
+                                <th>用戶</th>
+                                <th>類型</th>
+                                <th>模型</th>
+                                <th>Prompt</th>
+                                <th>狀態</th>
+                                <th>生成時間</th>
+                                <th>創建時間</th>
+                                <th>預覽</th>
+                                <th>下載</th>
+                            </tr>
+                        </thead>
+                        <tbody id="records-table-body">
+                            <tr>
+                                <td colspan="9" class="loading-cell">載入中...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- 統計信息 -->
+            <div id="admin-statistics" class="admin-tab-content active">
+                <div class="admin-section-header">
+                    <h3>📈 統計信息</h3>
+                    <div class="admin-actions">
+                        <button class="btn btn-primary" onclick="refreshStatistics()">🔄 刷新</button>
+                    </div>
+                </div>
+                
+                <div class="statistics-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">👥</div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="stat-active-users">-</div>
+                            <div class="stat-label">活躍用戶</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">🎨</div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="stat-total-generations">-</div>
+                            <div class="stat-label">總生成數</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">📸</div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="stat-image-generations">-</div>
+                            <div class="stat-label">圖像生成</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">🎬</div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="stat-video-generations">-</div>
+                            <div class="stat-label">影片生成</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">📅</div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="stat-today-generations">-</div>
+                            <div class="stat-label">今日生成</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="stat-success-rate">-</div>
+                            <div class="stat-label">成功率</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Prompt 撰寫建議彈出視窗 -->
+    <div class="modal" id="prompt-tips-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>💡 Prompt 撰寫建議</h3>
+                <button class="modal-close" onclick="closeModal('prompt-tips-modal')">×</button>
+            </div>
+            <div class="modal-body" id="prompt-tips-content">
+                <!-- 動態載入內容 -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="closeModal('prompt-tips-modal')">
+                    了解了
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 圖像預覽彈出視窗 -->
+    <div class="modal modal-large" id="image-preview-modal">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3>🖼️ 圖像預覽</h3>
+                <button class="modal-close" 
+                        onclick="closeModal('image-preview-modal')" 
+                        onmousedown="closeModal('image-preview-modal')"
+                        title="關閉預覽">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="preview-container">
+                    <img id="preview-image" src="" alt="Preview">
+                </div>
+                <div class="preview-actions">
+                    <button class="btn btn-primary" 
+                            onclick="console.log('📥 下載按鈕被點擊 v2'); downloadCurrentImage();">
+                        📥 下載圖像
+                    </button>
+                    <button class="btn btn-secondary" 
+                            onclick="console.log('🔗 分享按鈕被點擊 v2'); shareImage();">
+                        🔗 分享連結
+                    </button>
+                    <button class="btn btn-outline" onclick="closeModal('image-preview-modal')">
+                        ❌ 關閉預覽
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 影片預覽彈出視窗 -->
+    <div class="modal modal-large" id="video-preview-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🎬 影片預覽</h3>
+                <button class="modal-close" onclick="closeModal('video-preview-modal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="preview-container">
+                    <video id="preview-video" controls>
+                        <source src="" type="video/mp4">
+                        您的瀏覽器不支援影片播放。
+                    </video>
+                </div>
+                <div class="preview-actions">
+                    <button class="btn btn-primary" onclick="downloadCurrentVideo()">
+                        📥 下載影片
+                    </button>
+                    <button class="btn btn-secondary" onclick="shareVideo()">
+                        🔗 分享連結
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 載入動畫 -->
+    <div class="loading-overlay" id="loading-overlay" style="display: none;">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <div class="loading-message" id="loading-message">正在處理中...</div>
+            <div class="loading-progress">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+                </div>
+                <div class="progress-text" id="progress-text">0%</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 通知訊息容器 -->
+    <div class="notification-container" id="notification-container">
+        <!-- 動態生成的通知 -->
+    </div>
+
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='js/main.js') }}?v=20250617-2"></script>
+    <script src="{{ url_for('static', filename='js/image_generator.js') }}?v=20250617-2"></script>
+    <script src="{{ url_for('static', filename='js/image_search.js') }}?v=20250617-2"></script>
+    <script src="{{ url_for('static', filename='js/video_generator.js') }}?v=20250617-2"></script>
+    <script src="{{ url_for('static', filename='js/admin.js') }}?v=20250617-2"></script>
+    <script src="{{ url_for('static', filename='js/debug_modal.js') }}?v=20250617-2"></script>
+    
+    <!-- 初始化 -->
+    <script>
+        // 頁面載入完成後初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 開始初始化 AI 內容生成器...');
+            
+            // 初始化圖像生成器
+            try {
+                if (typeof ImageGenerator !== 'undefined') {
+                    window.imageGenerator = new ImageGenerator();
+                    console.log('✅ 圖像生成器初始化成功');
+                } else {
+                    console.error('❌ ImageGenerator 類別未載入');
+                }
+            } catch (error) {
+                console.error('❌ 圖像生成器初始化失敗:', error);
+            }
+            
+            // 初始化影片生成器
+            try {
+                if (typeof VideoGenerator !== 'undefined') {
+                    window.videoGenerator = new VideoGenerator();
+                    console.log('✅ 影片生成器初始化成功');
+                    console.log('🔍 影片生成器方法:', Object.getOwnPropertyNames(VideoGenerator.prototype));
+                } else {
+                    console.error('❌ VideoGenerator 類別未載入');
+                    // 檢查是否有語法錯誤
+                    console.log('🔍 檢查所有已載入的腳本...');
+                    Array.from(document.scripts).forEach((script, index) => {
+                        if (script.src && script.src.includes('video_generator.js')) {
+                            console.log(`📄 找到 video_generator.js 腳本 (${index + 1}):`, script.src);
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('❌ 影片生成器初始化失敗:', error);
+                console.error('🔍 錯誤堆疊:', error.stack);
+            }
+            
+            // 檢查全域變數
+            console.log('🔍 window.imageGenerator:', typeof window.imageGenerator);
+            console.log('🔍 window.videoGenerator:', typeof window.videoGenerator);
+            
+            console.log('✅ AI 內容生成器初始化完成');
+        });
+        
+        // 添加腳本載入錯誤監聽
+        document.addEventListener('error', function(e) {
+            if (e.target.tagName === 'SCRIPT' && e.target.src.includes('video_generator.js')) {
+                console.error('❌ video_generator.js 載入失敗:', e.target.src);
+            }
+        }, true);
+    </script>
+</body>
+</html> 
