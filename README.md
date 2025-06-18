@@ -115,7 +115,7 @@
   - 用戶管理（啟用/停用）
   - 下載生成的圖片/影片
 - **建議：** 正式部署請修改 `.env` 內的管理員帳號密碼。
-
+[![IMAGE ALT TEXT](https://github.com/ch-tseng/ai-media-generator/blob/6f02fcb3e822fe2c918327963330e15014bb888b/data/manage_admin.png)]
 ---
 
 ## 影像生成與影片生成操作教學
